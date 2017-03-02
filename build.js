@@ -22,11 +22,12 @@ module.exports = function (rootDir, outDir, settings) {
             "!**/*.intellisense.js"
         ],
         runners: [
+            'hr.halcyon-explorer.runner'
         ],
-        output: "HtmlRapierHalcyonClient",
+        output: "HtmlRapierHalcyonExplorer",
         dest: outDir,
         sourceRoot: __dirname + "/src/",
-        namespace: "hr.halcyon",
+        namespace: "hr.halcyon-explorer",
         concat: concat,
         minify: minify
     });
