@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "es5",
+    "outDir": "obj/tscout/lib",
+    "module": "amd",
+    "baseUrl": ".",
+    "paths": {
+      "hr.*": [
+        "node_modules/HtmlRapier/src/*",
+        "node_modules/htmlrapier.json-editor/*"
+      ],
+      "hr.widgets.*": [
+        "node_modules/HtmlRapier.Widgets/src/*"
+      ],
+      "hr.bootstrap.*": [
+        "node_modules/HtmlRapier.Bootstrap/lib/*",
+        "node_modules/HtmlRapier.Bootstrap/*"
+      ],
+      "hr.halcyon.*": [
+        "node_modules/HtmlRapier.Halcyon/src/*"
+      ],
+      "hr.halcyon-explorer.*": [
+        "src/*"
+      ],
+      "jdorn.*": [
+        "node_modules/htmlrapier.json-editor/*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "wwwroot"
+  ],
+  "compileOnSave": true
+}
