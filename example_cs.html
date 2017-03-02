@@ -1,0 +1,68 @@
+<!-- This is really cshtml, copy it to a razor view, you can skip this comment -->
+
+@{
+    ViewData["Title"] = "Api Explorer";
+}
+
+@section scripts{
+    <script src="~/lib/HtmlRapierHalcyonExplorer.js"></script>
+}
+
+<h1>Halcyon Api Browser</h1>
+<div data-hr-controller="halcyonbrowser">
+    <h2>Data</h2>
+    <pre data-hr-model="data" data-hr-model-component="dataProperty"></pre>
+    <h2>Links</h2>
+    <ul class="list-group" data-hr-model="links" data-hr-model-component="linksComponent"></ul>
+    <h2>Embedded Data</h2>
+    <div data-hr-model="embeds" data-hr-model-component="embedsComponent"></div>
+</div>
+
+<template data-hr-component="subBrowser">
+    <div class="panel panel-default">
+        <div class="panel-heading">Data</div>
+        <div class="panel-body">
+            <pre data-hr-model="data" data-hr-model-component="dataProperty"></pre>
+            <h4>Links</h4>
+            <ul class="list-group" data-hr-model="links" data-hr-model-component="linksComponent"></ul>
+            <h4>Embedded Data</h4>
+            <div data-hr-model="embeds" data-hr-model-component="embedsComponent"></div>
+        </div>
+    </div>
+</template>
+
+<template data-hr-component="dataProperty">
+    {{this}}
+</template>
+
+<template data-hr-component="linksComponent">
+    <a href="{{href}}">
+        <li class="list-group-item">
+            {{rel}}
+        </li>
+    </a>
+</template>
+<template data-hr-variant="form">
+    <li class="list-group-item">
+
+        <form data-hr-on-submit="submit" data-hr-model="requestData">
+            <div data-hr-handle="editorHolder"></div>
+            <div>
+                <button class="btn btn-default" type="submit">{{rel}}</button>
+            </div>
+        </form>
+    </li>
+</template>
+
+<template data-hr-component="embedsComponent">
+    <div data-hr-model="items" data-hr-model-component="subBrowser"></div>
+</template>
+
+<h2>Visit Url</h2>
+<form>
+    <div class="form-group">
+        <label class="control-label">Entry Point</label>
+        <input type="text" name="entry" class="form-control" />
+    </div>
+    <button type="submit">Go</button>
+</form>
