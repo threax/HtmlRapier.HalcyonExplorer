@@ -30,8 +30,8 @@ interface HalEndpointDoc {
 var defaultError = { path: null };
 
 class LinkController {
-    public static Builder(parentController: HalcyonBrowserController) {
-        return new controller.ControllerBuilder<LinkController, HalcyonBrowserController, HalLinkDisplay>(LinkController, parentController);
+    public static get InjectorArgs(): controller.DiFunction<any>[] {
+        return [controller.BindingCollection, HalcyonBrowserController, controller.InjectControllerData];
     }
 
     private rel: string;
@@ -156,26 +156,26 @@ interface Query {
 
 export class HalcyonBrowserController {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, fetcher.Fetcher];
+        return [controller.BindingCollection, fetcher.Fetcher, controller.InjectedControllerBuilder, controller.InjectedControllerBuilder];
     }
 
     private linkModel: controller.Model<HalLinkDisplay>;
     private embedsModel: controller.Model<HalClient.Embed>;
     private dataModel: controller.Model<any>;
     private client: HalClient.HalEndpointClient;
-    private fetcher: fetcher.Fetcher;
 
-    constructor(bindings: controller.BindingCollection, fetcher: fetcher.Fetcher) {
+    constructor(bindings: controller.BindingCollection, fetcher: fetcher.Fetcher, private linkControllerBuilder: controller.InjectedControllerBuilder, private embedsBuilder: controller.InjectedControllerBuilder) {
         this.linkModel = bindings.getModel<HalLinkDisplay>("links");
         this.embedsModel = bindings.getModel<HalClient.Embed>("embeds");
         this.dataModel = bindings.getModel<any>("data");
+        this.linkControllerBuilder.Services.addSingletonInstance(HalcyonBrowserController, this);
         this.setup(fetcher);
     }
 
-    private async setup(fetcher: fetcher.Fetcher){
+    protected async setup(fetcher: fetcher.Fetcher) {
         var query: Query = <Query>uri.getQueryObject();
         if (query.entry !== undefined) {
-            var client = await HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, this.fetcher);
+            var client = await HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, fetcher);
             this.showResults(client);
         }
         else{
@@ -188,14 +188,11 @@ export class HalcyonBrowserController {
 
         var dataString = JSON.stringify(client.GetData(), null, 4);
         this.dataModel.setData(dataString);
-
-        var linkControllerBuilder = LinkController.Builder(this);
         var iterator: iter.IterableInterface<HalClient.HalLinkInfo> = new iter.Iterable(client.GetAllLinks());
         var linkIter = iterator.select<HalLinkDisplay>(i => this.getLinkDisplay(i));
-        this.linkModel.setData(linkIter, linkControllerBuilder.createOnCallback(), this.getLinkVariant);
+        this.linkModel.setData(linkIter, this.linkControllerBuilder.createOnCallback(LinkController), this.getLinkVariant);
 
-        var embedsBuilder = HalcyonEmbedsController.Builder();
-        this.embedsModel.setData(client.GetAllEmbeds(), embedsBuilder.createOnCallback());
+        this.embedsModel.setData(client.GetAllEmbeds(), this.embedsBuilder.createOnCallback(HalcyonEmbedsController));
     }
 
     getCurrentClient() {
@@ -224,23 +221,26 @@ export class HalcyonBrowserController {
 
 class HalcyonSubBrowserController extends HalcyonBrowserController {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, fetcher.Fetcher, controller.InjectControllerData];
+        return [controller.BindingCollection, fetcher.Fetcher, controller.InjectControllerData, controller.InjectedControllerBuilder, controller.InjectedControllerBuilder];
     }
 
-    constructor(bindings: controller.BindingCollection, fetcher: fetcher.Fetcher, data: HalClient.HalEndpointClient) {
-        super(bindings, fetcher);
+    constructor(bindings: controller.BindingCollection, fetcher: fetcher.Fetcher, data: HalClient.HalEndpointClient, linkControllerBuilder: controller.InjectedControllerBuilder, embedsBuilder: controller.InjectedControllerBuilder) {
+        super(bindings, fetcher, linkControllerBuilder, embedsBuilder);
         this.showResults(data);
+    }
+
+    protected async setup(fetcher: fetcher.Fetcher) {
+        //Does nothing
     }
 }
 
 class HalcyonEmbedsController {
-    public static Builder() {
-        return new controller.ControllerBuilder<HalcyonEmbedsController, void, HalClient.Embed>(HalcyonEmbedsController);
+    public static get InjectorArgs(): controller.DiFunction<any>[] {
+        return [controller.BindingCollection, controller.InjectControllerData, controller.InjectedControllerBuilder];
     }
 
-    constructor(bindings: controller.BindingCollection, context: void, data: HalClient.Embed) {
+    constructor(bindings: controller.BindingCollection, data: HalClient.Embed, builder: controller.InjectedControllerBuilder) {
         var itemModel = bindings.getModel<HalClient.HalEndpointClient>("items");
-        var builder = new controller.InjectedControllerBuilder(this);
         itemModel.setData(data.GetAllClients(), builder.createOnCallback(HalcyonSubBrowserController));
     }
 }
@@ -248,5 +248,7 @@ class HalcyonEmbedsController {
 export function addServices(services: controller.ServiceCollection){
     services.tryAddScoped(HalcyonBrowserController, HalcyonBrowserController);
     services.tryAddScoped(HalcyonSubBrowserController, HalcyonSubBrowserController);
+    services.tryAddScoped(HalcyonEmbedsController, HalcyonEmbedsController);
+    services.tryAddScoped(LinkController, LinkController);
     services.tryAddScoped(fetcher.Fetcher, s => new WindowFetch.WindowFetch());
 }
