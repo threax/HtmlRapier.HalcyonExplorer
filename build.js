@@ -21,9 +21,7 @@ module.exports = function (rootDir, outDir, settings) {
             __dirname + "/src/**/*.ts",
             "!**/*.intellisense.js"
         ],
-        runners: [
-            'hr.halcyon-explorer.runner'
-        ],
+        runners: [],
         output: "HtmlRapierHalcyonExplorer",
         dest: outDir,
         sourceRoot: __dirname + "/src/",

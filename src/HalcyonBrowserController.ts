@@ -1,8 +1,10 @@
 ﻿import * as controller from 'hr.controller';
-import * as PageStart from 'hr.halcyon-explorer.HalApiBrowserStart';
 import * as HalClient from 'hr.halcyon.EndpointClient';
 import * as iter from 'hr.iterable';
 import * as jsonEditor from 'hr.halcyon-explorer.json-editor-plugin';
+import * as fetcher from 'hr.fetcher';
+import * as uri from 'hr.uri';
+import * as WindowFetch from 'hr.windowfetch';
 
 interface HalLinkDisplay {
     href: string,
@@ -27,7 +29,7 @@ interface HalEndpointDoc {
 
 var defaultError = { path: null };
 
-export class LinkController {
+class LinkController {
     public static Builder(parentController: HalcyonBrowserController) {
         return new controller.ControllerBuilder<LinkController, HalcyonBrowserController, HalLinkDisplay>(LinkController, parentController);
     }
@@ -148,20 +150,37 @@ export class LinkController {
     }
 }
 
+interface Query {
+    entry: string;
+}
+
 export class HalcyonBrowserController {
-    public static Builder() {
-        return new controller.ControllerBuilder<HalcyonBrowserController, void, void>(HalcyonBrowserController);
+    public static get InjectorArgs(): controller.DiFunction<any>[] {
+        return [controller.BindingCollection, fetcher.Fetcher];
     }
 
     private linkModel: controller.Model<HalLinkDisplay>;
     private embedsModel: controller.Model<HalClient.Embed>;
     private dataModel: controller.Model<any>;
     private client: HalClient.HalEndpointClient;
+    private fetcher: fetcher.Fetcher;
 
-    constructor(bindings: controller.BindingCollection) {
+    constructor(bindings: controller.BindingCollection, fetcher: fetcher.Fetcher) {
         this.linkModel = bindings.getModel<HalLinkDisplay>("links");
         this.embedsModel = bindings.getModel<HalClient.Embed>("embeds");
         this.dataModel = bindings.getModel<any>("data");
+        this.setup(fetcher);
+    }
+
+    private async setup(fetcher: fetcher.Fetcher){
+        var query: Query = <Query>uri.getQueryObject();
+        if (query.entry !== undefined) {
+            var client = await HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, this.fetcher);
+            this.showResults(client);
+        }
+        else{
+            throw new Error("No entry point");
+        }
     }
 
     showResults(client: HalClient.HalEndpointClient) {
@@ -204,12 +223,12 @@ export class HalcyonBrowserController {
 }
 
 class HalcyonSubBrowserController extends HalcyonBrowserController {
-    public static SubBrowserBuilder() {
-        return new controller.ControllerBuilder<HalcyonSubBrowserController, void, HalClient.HalEndpointClient>(HalcyonSubBrowserController);
+    public static get InjectorArgs(): controller.DiFunction<any>[] {
+        return [controller.BindingCollection, fetcher.Fetcher, controller.InjectControllerData];
     }
 
-    constructor(bindings: controller.BindingCollection, context: void, data: HalClient.HalEndpointClient) {
-        super(bindings);
+    constructor(bindings: controller.BindingCollection, fetcher: fetcher.Fetcher, data: HalClient.HalEndpointClient) {
+        super(bindings, fetcher);
         this.showResults(data);
     }
 }
@@ -221,7 +240,13 @@ class HalcyonEmbedsController {
 
     constructor(bindings: controller.BindingCollection, context: void, data: HalClient.Embed) {
         var itemModel = bindings.getModel<HalClient.HalEndpointClient>("items");
-        var subBrowserBuilder = HalcyonSubBrowserController.SubBrowserBuilder();
-        itemModel.setData(data.GetAllClients(), subBrowserBuilder.createOnCallback());
+        var builder = new controller.InjectedControllerBuilder(this);
+        itemModel.setData(data.GetAllClients(), builder.createOnCallback(HalcyonSubBrowserController));
     }
+}
+
+export function addServices(services: controller.ServiceCollection){
+    services.tryAddScoped(HalcyonBrowserController, HalcyonBrowserController);
+    services.tryAddScoped(HalcyonSubBrowserController, HalcyonSubBrowserController);
+    services.tryAddScoped(fetcher.Fetcher, s => new WindowFetch.WindowFetch());
 }
