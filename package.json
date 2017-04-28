@@ -1,15 +1,15 @@
 {
   "name": "htmlrapier.halcyon-explorer",
-  "version": "3.8.0",
+  "version": "4.0.0",
   "private": false,
   "devDependencies": {
-    "threax-gulp-tk": "^4.2.0"
+    
   },
   "dependencies": {
-    "jsns": "^2.0.1",
-    "htmlrapier": "^3.8.0",
-    "htmlrapier.bootstrap": "^3.2.0",
-    "htmlrapier.widgets": "^3.8.0",
-    "htmlrapier.halcyon": "^3.3.4"
+    "jsns": "^4.2.2",
+    "htmlrapier": "^5.0.1",
+    "htmlrapier.bootstrap": "^4.1.0",
+    "htmlrapier.widgets": "^5.0.0",
+    "htmlrapier.halcyon": "^4.0.0"
   }
 }

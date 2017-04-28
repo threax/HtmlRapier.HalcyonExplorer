@@ -168,7 +168,7 @@ export class HalcyonBrowserController {
         this.linkModel = bindings.getModel<HalLinkDisplay>("links");
         this.embedsModel = bindings.getModel<HalClient.Embed>("embeds");
         this.dataModel = bindings.getModel<any>("data");
-        this.linkControllerBuilder.Services.addSingletonInstance(HalcyonBrowserController, this);
+        this.linkControllerBuilder.Services.addSharedInstance(HalcyonBrowserController, this);
         this.setup(fetcher);
     }
 
@@ -246,9 +246,9 @@ class HalcyonEmbedsController {
 }
 
 export function addServices(services: controller.ServiceCollection){
-    services.tryAddScoped(HalcyonBrowserController, HalcyonBrowserController);
-    services.tryAddScoped(HalcyonSubBrowserController, HalcyonSubBrowserController);
-    services.tryAddScoped(HalcyonEmbedsController, HalcyonEmbedsController);
-    services.tryAddScoped(LinkController, LinkController);
-    services.tryAddScoped(fetcher.Fetcher, s => new WindowFetch.WindowFetch());
+    services.tryAddTransient(HalcyonBrowserController, HalcyonBrowserController);
+    services.tryAddTransient(HalcyonSubBrowserController, HalcyonSubBrowserController);
+    services.tryAddTransient(HalcyonEmbedsController, HalcyonEmbedsController);
+    services.tryAddTransient(LinkController, LinkController);
+    services.tryAddTransient(fetcher.Fetcher, s => new WindowFetch.WindowFetch());
 }
