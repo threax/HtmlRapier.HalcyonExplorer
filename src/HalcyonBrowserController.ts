@@ -2,9 +2,11 @@
 import * as HalClient from 'hr.halcyon.EndpointClient';
 import * as iter from 'hr.iterable';
 import * as jsonEditor from 'hr.halcyon-explorer.json-editor-plugin';
+import * as jsonEditorWidgets from 'hr.widgets.json-editor-plugin';
 import * as fetcher from 'hr.fetcher';
 import * as uri from 'hr.uri';
 import * as WindowFetch from 'hr.windowfetch';
+import * as schema from 'hr.widgets.SchemaConverter';
 
 interface HalLinkDisplay {
     href: string,
@@ -31,7 +33,7 @@ var defaultError = { path: null };
 
 class LinkController {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, HalcyonBrowserController, controller.InjectControllerData];
+        return [controller.BindingCollection, HalcyonBrowserController, controller.InjectControllerData, schema.ISchemaConverter];
     }
 
     private rel: string;
@@ -43,7 +45,7 @@ class LinkController {
     private currentError: Error = null;
     private isQueryForm: boolean;
 
-    constructor(bindings: controller.BindingCollection, parentController: HalcyonBrowserController, link: HalLinkDisplay) {
+    constructor(bindings: controller.BindingCollection, parentController: HalcyonBrowserController, link: HalLinkDisplay, private schemaConverter: schema.ISchemaConverter) {
         this.rel = link.rel;
         this.parentController = parentController;
         this.client = link.getClient();
@@ -55,7 +57,7 @@ class LinkController {
                     var doc = docClient.GetData<HalEndpointDoc>();
                     if (doc.requestSchema) {
                         this.formModel = jsonEditor.create<any>(bindings.getHandle("editorHolder"), {
-                            schema: doc.requestSchema,
+                            schema: this.schemaConverter.convert(doc.requestSchema),
                             disable_edit_json: true,
                             disable_properties: true,
                             disable_collapse: true,
@@ -70,7 +72,7 @@ class LinkController {
                     }
                     else if (doc.querySchema) {
                         this.formModel = jsonEditor.create<any>(bindings.getHandle("editorHolder"), {
-                            schema: doc.querySchema,
+                            schema: this.schemaConverter.convert(doc.querySchema),
                             disable_edit_json: true,
                             disable_properties: true,
                             disable_collapse: true,
@@ -251,4 +253,5 @@ export function addServices(services: controller.ServiceCollection){
     services.tryAddTransient(HalcyonEmbedsController, HalcyonEmbedsController);
     services.tryAddTransient(LinkController, LinkController);
     services.tryAddTransient(fetcher.Fetcher, s => new WindowFetch.WindowFetch());
+    jsonEditorWidgets.AddServices(services);
 }
