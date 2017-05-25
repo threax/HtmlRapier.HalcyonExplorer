@@ -61,6 +61,7 @@ class LinkController {
                             disable_edit_json: true,
                             disable_properties: true,
                             disable_collapse: true,
+                            remove_empty_properties: true,
                             show_errors: "always",
                             custom_validators: [
                                 (schema, value, path) => this.showCurrentErrorValidator(schema, value, path)
@@ -76,6 +77,7 @@ class LinkController {
                             disable_edit_json: true,
                             disable_properties: true,
                             disable_collapse: true,
+                            remove_empty_properties: true,
                             show_errors: "always",
                             custom_validators: [
                                 (schema, value, path) => this.showCurrentErrorValidator(schema, value, path)

@@ -8,6 +8,7 @@ JSONEditor.defaults.iconlib = 'bootstrap3';
 JSONEditor.defaults.disable_collapse = true;
 JSONEditor.defaults.disable_edit_json = true;
 JSONEditor.defaults.disable_properties = true;
+JSONEditor.defaults.remove_empty_properties = true;
 
 //Override Boolean editors, we want checkboxes by default for booleans
 JSONEditor.defaults.resolvers.unshift(function (schema) {
