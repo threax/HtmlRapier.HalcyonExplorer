@@ -1,15 +1,14 @@
 {
   "name": "htmlrapier.halcyon-explorer",
-  "version": "4.2.2",
+  "version": "4.3.0",
   "private": false,
   "devDependencies": {
     
   },
   "dependencies": {
-    "jsns": "^4.2.2",
-    "htmlrapier": "^5.2.0",
-    "htmlrapier.bootstrap": "^4.1.0",
-    "htmlrapier.widgets": "^5.2.1",
-    "htmlrapier.halcyon": "^4.0.2"
+    "htmlrapier": ">=5.2.0",
+    "htmlrapier.bootstrap": ">=4.1.0",
+    "htmlrapier.widgets": ">=5.2.1",
+    "htmlrapier.halcyon": ">=4.0.2"
   }
 }
