@@ -62,6 +62,10 @@ class ConcreteJsonEditorModel<T> implements JsonEditorModel<T> {
     getSrc(): string {
         return null;
     }
+
+    setPrototype(proto: any) {
+
+    }
 }
 
 /**
