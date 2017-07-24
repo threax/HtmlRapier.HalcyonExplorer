@@ -6,9 +6,7 @@
     
   },
   "dependencies": {
-    "htmlrapier": ">=8.0.0",
-    "htmlrapier.bootstrap": ">=4.2.1",
-    "htmlrapier.widgets": ">=6.0.0",
+    "htmlrapier": ">=9.0.0",
     "htmlrapier.halcyon": ">=6.0.0"
   }
 }

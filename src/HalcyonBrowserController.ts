@@ -70,9 +70,8 @@ class LinkController {
     public async submit(evt: Event): Promise<void> {
         evt.preventDefault();
         var promise;
-        if (this.formModel != null) {
-            var data = this.formModel.getData();
-
+        var data = this.formModel.getData();
+        if (data !== null) {
             if (this.isQueryForm) {
                 promise = this.client.LoadLinkWithQuery(this.rel, data);
             }
