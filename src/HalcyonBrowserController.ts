@@ -1,12 +1,10 @@
 ﻿import * as controller from 'hr.controller';
 import * as HalClient from 'hr.halcyon.EndpointClient';
 import * as iter from 'hr.iterable';
-import * as jsonEditor from 'hr.halcyon-explorer.json-editor-plugin';
-import * as jsonEditorWidgets from 'hr.widgets.json-editor-plugin';
 import * as fetcher from 'hr.fetcher';
 import * as uri from 'hr.uri';
 import * as WindowFetch from 'hr.windowfetch';
-import * as schema from 'hr.widgets.SchemaConverter';
+import * as form from 'hr.form';
 
 interface HalLinkDisplay {
     href: string,
@@ -33,64 +31,43 @@ var defaultError = { path: null };
 
 class LinkController {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, HalcyonBrowserController, controller.InjectControllerData, schema.ISchemaConverter];
+        return [controller.BindingCollection, HalcyonBrowserController, controller.InjectControllerData];
     }
 
     private rel: string;
     private method: string;
     private parentController: HalcyonBrowserController;
     private client: HalClient.HalEndpointClient;
-    private formModel = null;
-    private jsonEditor;
+    private formModel: controller.IForm<any> = null;
     private currentError: Error = null;
     private isQueryForm: boolean;
 
-    constructor(bindings: controller.BindingCollection, parentController: HalcyonBrowserController, link: HalLinkDisplay, private schemaConverter: schema.ISchemaConverter) {
+    constructor(bindings: controller.BindingCollection, parentController: HalcyonBrowserController, link: HalLinkDisplay) {
         this.rel = link.rel;
         this.parentController = parentController;
         this.client = link.getClient();
         this.method = link.method;
+        this.formModel = bindings.getForm<any>("form");
+        this.setup(bindings, parentController);
+    }
 
+    private async setup(bindings: controller.BindingCollection, parentController: HalcyonBrowserController): Promise<void>{
         if (this.client.HasLinkDoc(this.rel)) {
-            this.client.LoadLinkDoc(this.rel)
-                .then(docClient => {
-                    var doc = docClient.GetData<HalEndpointDoc>();
-                    if (doc.requestSchema) {
-                        this.formModel = jsonEditor.create<any>(bindings.getHandle("editorHolder"), {
-                            schema: this.schemaConverter.convert(doc.requestSchema),
-                            disable_edit_json: true,
-                            disable_properties: true,
-                            disable_collapse: true,
-                            remove_empty_properties: false,
-                            show_errors: "always",
-                            custom_validators: [
-                                (schema, value, path) => this.showCurrentErrorValidator(schema, value, path)
-                            ],
-                        });
-                        this.jsonEditor = this.formModel.getEditor();
-                        this.formModel.setData(this.client.GetData());
-                        this.isQueryForm = false;
-                    }
-                    else if (doc.querySchema) {
-                        this.formModel = jsonEditor.create<any>(bindings.getHandle("editorHolder"), {
-                            schema: this.schemaConverter.convert(doc.querySchema),
-                            disable_edit_json: true,
-                            disable_properties: true,
-                            disable_collapse: true,
-                            remove_empty_properties: false,
-                            show_errors: "always",
-                            custom_validators: [
-                                (schema, value, path) => this.showCurrentErrorValidator(schema, value, path)
-                            ],
-                        });
-                        this.jsonEditor = this.formModel.getEditor();
-                        this.isQueryForm = true;
-                    }
-                });
+            var docResult = await this.client.LoadLinkDoc(this.rel);
+            var doc = docResult.GetData<HalEndpointDoc>();
+            if (doc.requestSchema) {
+                this.formModel.setSchema(doc.requestSchema);
+                this.formModel.setData(this.client.GetData());
+                this.isQueryForm = false;
+            }
+            else if (doc.querySchema) {
+                this.formModel.setSchema(doc.querySchema);
+                this.isQueryForm = true;
+            }
         }
     }
 
-    submit(evt) {
+    public async submit(evt: Event): Promise<void> {
         evt.preventDefault();
         var promise;
         if (this.formModel != null) {
@@ -107,18 +84,14 @@ class LinkController {
             promise = this.client.LoadLink(this.rel);
         }
 
-        promise.then(result => {
-            this.parentController.showResults(result);
-        })
-        .catch(err => {
+        try{
+            this.parentController.showResults(await promise);
+        }
+        catch(err){
             this.currentError = err;
-            if (this.jsonEditor) {
-                this.jsonEditor.onChange();
-            }
-            else {
-                alert('Error completing request. Message: ' + err.message);
-            }
-        });
+            //Display error on form
+            alert('Error completing request. Message: ' + err.message);
+        }
     }
 
     private showCurrentErrorValidator(schema, value, path): any {
@@ -255,5 +228,4 @@ export function addServices(services: controller.ServiceCollection){
     services.tryAddTransient(HalcyonEmbedsController, HalcyonEmbedsController);
     services.tryAddTransient(LinkController, LinkController);
     services.tryAddTransient(fetcher.Fetcher, s => new WindowFetch.WindowFetch());
-    jsonEditorWidgets.AddServices(services);
 }
