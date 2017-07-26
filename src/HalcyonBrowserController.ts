@@ -88,37 +88,9 @@ class LinkController {
         }
         catch(err){
             this.currentError = err;
-            //Display error on form
+            this.formModel.setError(err);
             alert('Error completing request. Message: ' + err.message);
         }
-    }
-
-    private showCurrentErrorValidator(schema, value, path): any {
-        if (this.currentError !== null) {
-            if (path === "root") {
-                return {
-                    path: path,
-                    message: this.currentError.message
-                }
-            }
-
-            if (this.currentError instanceof HalClient.HalError) {
-                var halError = <HalClient.HalError>this.currentError;
-
-                //walk path to error
-                var shortPath = this.errorPath(path);
-                var errorMessage = halError.getValidationError(shortPath);
-                if (errorMessage !== undefined) {
-                    //Listen for changes on field
-                    //this.fieldWatcher.watch(path, shortPath, this.currentError);
-                    return {
-                        path: path,
-                        message: errorMessage
-                    };
-                }
-            }
-        }
-        return defaultError;
     }
 
     private errorPath(path) {
