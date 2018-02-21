@@ -75,6 +75,8 @@ class LinkController {
 
     public toggleHiddenArea(evt: Event): void {
         evt.preventDefault();
+        evt.stopPropagation();
+        evt.stopImmediatePropagation();
         this.hiddenAreaToggle.toggle();
         this.expandButtonToggle.mode = this.hiddenAreaToggle.mode;
     }
@@ -180,17 +182,34 @@ export class HalcyonBrowserController {
 }
 
 class HalcyonSubBrowserController extends HalcyonBrowserController {
+    private hiddenAreaToggle: controller.OnOffToggle;
+    private expandButtonToggle: controller.OnOffToggle;
+
     public static get InjectorArgs(): controller.DiFunction<any>[] {
         return [controller.BindingCollection, fetcher.Fetcher, controller.InjectControllerData, controller.InjectedControllerBuilder, controller.InjectedControllerBuilder];
     }
 
     constructor(bindings: controller.BindingCollection, fetcher: fetcher.Fetcher, data: HalClient.HalEndpointClient, linkControllerBuilder: controller.InjectedControllerBuilder, embedsBuilder: controller.InjectedControllerBuilder) {
         super(bindings, fetcher, linkControllerBuilder, embedsBuilder);
+
+        this.hiddenAreaToggle = bindings.getToggle("hiddenArea");
+        this.hiddenAreaToggle.off();
+        this.expandButtonToggle = bindings.getToggle("expandButton");
+        this.expandButtonToggle.off();
+
         this.showResults(data);
     }
 
     protected async setup(fetcher: fetcher.Fetcher) {
         //Does nothing
+    }
+
+    public toggleHiddenArea(evt: Event): void {
+        evt.preventDefault();
+        evt.stopPropagation();
+        evt.stopImmediatePropagation();
+        this.hiddenAreaToggle.toggle();
+        this.expandButtonToggle.mode = this.hiddenAreaToggle.mode;
     }
 }
 
