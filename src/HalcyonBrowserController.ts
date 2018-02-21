@@ -41,12 +41,18 @@ class LinkController {
     private formModel: controller.IForm<any> = null;
     private currentError: Error = null;
     private isQueryForm: boolean;
+    private hiddenAreaToggle: controller.OnOffToggle;
+    private expandButtonToggle: controller.OnOffToggle;
 
     constructor(bindings: controller.BindingCollection, parentController: HalcyonBrowserController, link: HalLinkDisplay) {
         this.rel = link.rel;
         this.parentController = parentController;
         this.client = link.getClient();
         this.method = link.method;
+        this.hiddenAreaToggle = bindings.getToggle("hiddenArea");
+        this.hiddenAreaToggle.off();
+        this.expandButtonToggle = bindings.getToggle("expandButton");
+        this.expandButtonToggle.off();
         this.formModel = bindings.getForm<any>("form");
         this.setup(bindings, parentController);
     }
@@ -65,6 +71,12 @@ class LinkController {
                 this.isQueryForm = true;
             }
         }
+    }
+
+    public toggleHiddenArea(evt: Event): void {
+        evt.preventDefault();
+        this.hiddenAreaToggle.toggle();
+        this.expandButtonToggle.mode = this.hiddenAreaToggle.mode;
     }
 
     public async submit(evt: Event): Promise<void> {
