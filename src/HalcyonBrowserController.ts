@@ -185,17 +185,17 @@ class HalcyonMainBrowserController extends HalcyonBrowserController implements d
         this.mainToggle = bindings.getToggle("main");
         this.toggleGroup = new toggles.Group(this.loadToggle, this.mainToggle);
 
-        this.setup(fetcher, true);
+        this.setup(true);
         this.deepLinkManager.registerHandler(DeepLinkManagerName, this);
     }
 
-    protected async setup(fetcher: fetcher.Fetcher, replaceState: boolean) {
+    protected async setup(replaceState: boolean) {
         var query: Query = <Query>uri.getQueryObject();
         if (query.entry !== undefined) {
             if (replaceState) {
                 this.deepLinkManager.replaceState(DeepLinkManagerName, null, { entry: query.entry });
             }
-            this.showResults(HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, fetcher));
+            this.showResults(HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, this.fetcher));
         }
         else {
             throw new Error("No entry point");
@@ -203,7 +203,7 @@ class HalcyonMainBrowserController extends HalcyonBrowserController implements d
     }
 
     public onPopState(args: deepLink.DeepLinkArgs) {
-        this.setup(fetcher, false);
+        this.setup(false);
     }
 
     async showResults(clientPromise: Promise<HalClient.HalEndpointClient>) {
