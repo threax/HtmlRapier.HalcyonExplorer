@@ -6,6 +6,7 @@ import * as uri from 'hr.uri';
 import * as WindowFetch from 'hr.windowfetch';
 import * as form from 'hr.form';
 import * as deepLink from 'hr.deeplink';
+import * as toggles from 'hr.toggles';
 
 const DeepLinkManagerName = "ApiBrowser";
 
@@ -101,7 +102,7 @@ class LinkController {
         }
 
         try{
-            this.parentController.showResults(await promise);
+            this.parentController.showResults(promise);
             if (this.method === "GET") {
                 this.deepLinkManager.pushState(DeepLinkManagerName, null, { entry: this.client.GetLink(this.rel).href });
             }
@@ -134,16 +135,16 @@ export abstract class HalcyonBrowserController {
         this.dataModel = bindings.getModel<any>("data");
     }
 
-    showResults(client: HalClient.HalEndpointClient) {
-        this.client = client;
+    async showResults(clientPromise: Promise<HalClient.HalEndpointClient>): Promise<void> {
+        this.client = await clientPromise;
 
-        var dataString = JSON.stringify(client.GetData(), null, 4);
+        var dataString = JSON.stringify(this.client.GetData(), null, 4);
         this.dataModel.setData(dataString);
-        var iterator: iter.IterableInterface<HalClient.HalLinkInfo> = new iter.Iterable(client.GetAllLinks());
+        var iterator: iter.IterableInterface<HalClient.HalLinkInfo> = new iter.Iterable(this.client.GetAllLinks());
         var linkIter = iterator.select<HalLinkDisplay>(i => this.getLinkDisplay(i));
         this.linkModel.setData(linkIter, this.builder.createOnCallback(LinkController), this.getLinkVariant);
 
-        this.embedsModel.setData(client.GetAllEmbeds(), this.builder.createOnCallback(HalcyonEmbedsController));
+        this.embedsModel.setData(this.client.GetAllEmbeds(), this.builder.createOnCallback(HalcyonEmbedsController));
     }
 
     getCurrentClient() {
@@ -173,8 +174,17 @@ class HalcyonMainBrowserController extends HalcyonBrowserController implements d
         return [controller.BindingCollection, fetcher.Fetcher, controller.InjectedControllerBuilder, deepLink.IDeepLinkManager];
     }
 
+    private loadToggle: controller.OnOffToggle;
+    private mainToggle: controller.OnOffToggle;
+    private toggleGroup: toggles.Group;
+
     constructor(bindings: controller.BindingCollection, private fetcher: fetcher.Fetcher, builder: controller.InjectedControllerBuilder, private deepLinkManager: deepLink.IDeepLinkManager) {
         super(bindings, builder);
+
+        this.loadToggle = bindings.getToggle("load");
+        this.mainToggle = bindings.getToggle("main");
+        this.toggleGroup = new toggles.Group(this.loadToggle, this.mainToggle);
+
         this.setup(fetcher);
         this.deepLinkManager.registerHandler(DeepLinkManagerName, this);
     }
@@ -182,8 +192,7 @@ class HalcyonMainBrowserController extends HalcyonBrowserController implements d
     protected async setup(fetcher: fetcher.Fetcher) {
         var query: Query = <Query>uri.getQueryObject();
         if (query.entry !== undefined) {
-            var client = await HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, fetcher);
-            this.showResults(client);
+            this.showResults(HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, fetcher));
         }
         else {
             throw new Error("No entry point");
@@ -192,6 +201,12 @@ class HalcyonMainBrowserController extends HalcyonBrowserController implements d
 
     public onPopState(args: deepLink.DeepLinkArgs) {
         this.setup(fetcher);
+    }
+
+    async showResults(clientPromise: Promise<HalClient.HalEndpointClient>) {
+        this.toggleGroup.activate(this.loadToggle);
+        await super.showResults(clientPromise);
+        this.toggleGroup.activate(this.mainToggle);
     }
 }
 
@@ -211,7 +226,7 @@ class HalcyonSubBrowserController extends HalcyonBrowserController {
         this.expandButtonToggle = bindings.getToggle("expandButton");
         this.expandButtonToggle.off();
 
-        this.showResults(data);
+        this.showResults(Promise.resolve(data));
     }
 
     public toggleHiddenArea(evt: Event): void {
