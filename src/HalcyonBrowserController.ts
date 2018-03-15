@@ -130,19 +130,6 @@ export class HalcyonBrowserController {
         this.linkModel = bindings.getModel<HalLinkDisplay>("links");
         this.embedsModel = bindings.getModel<HalClient.Embed>("embeds");
         this.dataModel = bindings.getModel<any>("data");
-        this.linkControllerBuilder.Services.addSharedInstance(HalcyonBrowserController, this);
-        this.setup(fetcher);
-    }
-
-    protected async setup(fetcher: fetcher.Fetcher) {
-        var query: Query = <Query>uri.getQueryObject();
-        if (query.entry !== undefined) {
-            var client = await HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, fetcher);
-            this.showResults(client);
-        }
-        else{
-            throw new Error("No entry point");
-        }
     }
 
     showResults(client: HalClient.HalEndpointClient) {
@@ -181,6 +168,29 @@ export class HalcyonBrowserController {
     }
 }
 
+class HalcyonMainBrowserController extends HalcyonBrowserController {
+    public static get InjectorArgs(): controller.DiFunction<any>[] {
+        return HalcyonBrowserController.InjectorArgs;
+    }
+
+    constructor(bindings: controller.BindingCollection, fetcher: fetcher.Fetcher, linkControllerBuilder: controller.InjectedControllerBuilder, embedsBuilder: controller.InjectedControllerBuilder) {
+        super(bindings, fetcher, linkControllerBuilder, embedsBuilder);
+        //linkControllerBuilder.Services.addSharedInstance(HalcyonBrowserController, this);
+        this.setup(fetcher);
+    }
+
+    protected async setup(fetcher: fetcher.Fetcher) {
+        var query: Query = <Query>uri.getQueryObject();
+        if (query.entry !== undefined) {
+            var client = await HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, fetcher);
+            this.showResults(client);
+        }
+        else {
+            throw new Error("No entry point");
+        }
+    }
+}
+
 class HalcyonSubBrowserController extends HalcyonBrowserController {
     private hiddenAreaToggle: controller.OnOffToggle;
     private expandButtonToggle: controller.OnOffToggle;
@@ -198,10 +208,6 @@ class HalcyonSubBrowserController extends HalcyonBrowserController {
         this.expandButtonToggle.off();
 
         this.showResults(data);
-    }
-
-    protected async setup(fetcher: fetcher.Fetcher) {
-        //Does nothing
     }
 
     public toggleHiddenArea(evt: Event): void {
@@ -224,10 +230,18 @@ class HalcyonEmbedsController {
     }
 }
 
-export function addServices(services: controller.ServiceCollection){
-    services.tryAddTransient(HalcyonBrowserController, HalcyonBrowserController);
+export class BrowserOptions {
+    name: string = "halcyonbrowser";
+}
+
+export function addServices(services: controller.ServiceCollection) {
+    services.tryAddShared(HalcyonBrowserController, HalcyonMainBrowserController);
     services.tryAddTransient(HalcyonSubBrowserController, HalcyonSubBrowserController);
     services.tryAddTransient(HalcyonEmbedsController, HalcyonEmbedsController);
     services.tryAddTransient(LinkController, LinkController);
     services.tryAddTransient(fetcher.Fetcher, s => new WindowFetch.WindowFetch());
+}
+
+export function createBrowser(builder: controller.InjectedControllerBuilder, options: BrowserOptions) {
+    builder.create(options.name, HalcyonBrowserController);
 }
