@@ -47,6 +47,10 @@ class LinkController {
     private isQueryForm: boolean;
     private hiddenAreaToggle: controller.OnOffToggle;
     private expandButtonToggle: controller.OnOffToggle;
+    private loadedDocs: boolean = false;
+    private loadToggle: controller.OnOffToggle;
+    private mainToggle: controller.OnOffToggle;
+    private toggleGroup: toggles.Group;
 
     constructor(bindings: controller.BindingCollection, parentController: HalcyonBrowserController, link: HalLinkDisplay, private deepLinkManager: deepLink.IDeepLinkManager) {
         this.rel = link.rel;
@@ -57,23 +61,36 @@ class LinkController {
         this.hiddenAreaToggle.off();
         this.expandButtonToggle = bindings.getToggle("expandButton");
         this.expandButtonToggle.off();
+        this.expandButtonToggle.onEvent.add(arg => this.setup());
         this.formModel = bindings.getForm<any>("form");
-        this.setup(bindings, parentController);
+        this.loadToggle = bindings.getToggle("load");
+        this.mainToggle = bindings.getToggle("main");
+        this.toggleGroup = new toggles.Group(this.loadToggle, this.mainToggle);
     }
 
-    private async setup(bindings: controller.BindingCollection, parentController: HalcyonBrowserController): Promise<void>{
-        if (this.client.HasLinkDoc(this.rel)) {
-            var docResult = await this.client.LoadLinkDoc(this.rel);
-            var doc = docResult.GetData<HalEndpointDoc>();
-            if (doc.requestSchema) {
-                this.formModel.setSchema(doc.requestSchema);
-                this.formModel.setData(this.client.GetData());
-                this.isQueryForm = false;
+    private async setup(): Promise<void>{
+        if (this.loadedDocs) {
+            return;
+        }
+        this.loadedDocs = true;
+        try {
+            this.toggleGroup.activate(this.loadToggle);
+            if (this.client.HasLinkDoc(this.rel)) {
+                var docResult = await this.client.LoadLinkDoc(this.rel);
+                var doc = docResult.GetData<HalEndpointDoc>();
+                if (doc.requestSchema) {
+                    this.formModel.setSchema(doc.requestSchema);
+                    this.formModel.setData(this.client.GetData());
+                    this.isQueryForm = false;
+                }
+                else if (doc.querySchema) {
+                    this.formModel.setSchema(doc.querySchema);
+                    this.isQueryForm = true;
+                }
             }
-            else if (doc.querySchema) {
-                this.formModel.setSchema(doc.querySchema);
-                this.isQueryForm = true;
-            }
+        }
+        finally {
+            this.toggleGroup.activate(this.mainToggle);
         }
     }
 
