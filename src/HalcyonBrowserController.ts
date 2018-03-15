@@ -128,7 +128,7 @@ export abstract class HalcyonBrowserController {
     private dataModel: controller.Model<any>;
     private client: HalClient.HalEndpointClient;
 
-    constructor(bindings: controller.BindingCollection, private linkControllerBuilder: controller.InjectedControllerBuilder, private embedsBuilder: controller.InjectedControllerBuilder) {
+    constructor(bindings: controller.BindingCollection, private builder: controller.InjectedControllerBuilder) {
         this.linkModel = bindings.getModel<HalLinkDisplay>("links");
         this.embedsModel = bindings.getModel<HalClient.Embed>("embeds");
         this.dataModel = bindings.getModel<any>("data");
@@ -141,9 +141,9 @@ export abstract class HalcyonBrowserController {
         this.dataModel.setData(dataString);
         var iterator: iter.IterableInterface<HalClient.HalLinkInfo> = new iter.Iterable(client.GetAllLinks());
         var linkIter = iterator.select<HalLinkDisplay>(i => this.getLinkDisplay(i));
-        this.linkModel.setData(linkIter, this.linkControllerBuilder.createOnCallback(LinkController), this.getLinkVariant);
+        this.linkModel.setData(linkIter, this.builder.createOnCallback(LinkController), this.getLinkVariant);
 
-        this.embedsModel.setData(client.GetAllEmbeds(), this.embedsBuilder.createOnCallback(HalcyonEmbedsController));
+        this.embedsModel.setData(client.GetAllEmbeds(), this.builder.createOnCallback(HalcyonEmbedsController));
     }
 
     getCurrentClient() {
@@ -170,11 +170,11 @@ export abstract class HalcyonBrowserController {
 
 class HalcyonMainBrowserController extends HalcyonBrowserController implements deepLink.IDeepLinkHandler {
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, fetcher.Fetcher, controller.InjectedControllerBuilder, controller.InjectedControllerBuilder, deepLink.IDeepLinkManager];
+        return [controller.BindingCollection, fetcher.Fetcher, controller.InjectedControllerBuilder, deepLink.IDeepLinkManager];
     }
 
-    constructor(bindings: controller.BindingCollection, private fetcher: fetcher.Fetcher, linkControllerBuilder: controller.InjectedControllerBuilder, embedsBuilder: controller.InjectedControllerBuilder, private deepLinkManager: deepLink.IDeepLinkManager) {
-        super(bindings, linkControllerBuilder, embedsBuilder);
+    constructor(bindings: controller.BindingCollection, private fetcher: fetcher.Fetcher, builder: controller.InjectedControllerBuilder, private deepLinkManager: deepLink.IDeepLinkManager) {
+        super(bindings, builder);
         this.setup(fetcher);
         this.deepLinkManager.registerHandler(DeepLinkManagerName, this);
     }
@@ -200,11 +200,11 @@ class HalcyonSubBrowserController extends HalcyonBrowserController {
     private expandButtonToggle: controller.OnOffToggle;
 
     public static get InjectorArgs(): controller.DiFunction<any>[] {
-        return [controller.BindingCollection, controller.InjectControllerData, controller.InjectedControllerBuilder, controller.InjectedControllerBuilder];
+        return [controller.BindingCollection, controller.InjectControllerData, controller.InjectedControllerBuilder];
     }
 
-    constructor(bindings: controller.BindingCollection, data: HalClient.HalEndpointClient, linkControllerBuilder: controller.InjectedControllerBuilder, embedsBuilder: controller.InjectedControllerBuilder) {
-        super(bindings, linkControllerBuilder, embedsBuilder);
+    constructor(bindings: controller.BindingCollection, data: HalClient.HalEndpointClient, builder: controller.InjectedControllerBuilder) {
+        super(bindings, builder);
 
         this.hiddenAreaToggle = bindings.getToggle("hiddenArea");
         this.hiddenAreaToggle.off();
