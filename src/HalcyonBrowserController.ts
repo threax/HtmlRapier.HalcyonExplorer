@@ -44,7 +44,6 @@ class LinkController {
     private client: HalClient.HalEndpointClient;
     private formModel: controller.IForm<any> = null;
     private currentError: Error = null;
-    private isQueryForm: boolean;
     private hiddenAreaToggle: controller.OnOffToggle;
     private expandButtonToggle: controller.OnOffToggle;
     private loadedDocs: boolean = false;
@@ -81,11 +80,9 @@ class LinkController {
                 if (doc.requestSchema) {
                     this.formModel.setSchema(doc.requestSchema);
                     this.formModel.setData(this.client.GetData());
-                    this.isQueryForm = false;
                 }
                 else if (doc.querySchema) {
                     this.formModel.setSchema(doc.querySchema);
-                    this.isQueryForm = true;
                 }
             }
         }
@@ -104,22 +101,18 @@ class LinkController {
 
     public async submit(evt: Event): Promise<void> {
         evt.preventDefault();
-        var promise;
-        var data = this.formModel.getData();
-        if (data !== null) {
-            if (this.isQueryForm) {
-                promise = this.client.LoadLinkWithQuery(this.rel, data);
+
+        try {
+            var promise;
+            var data = this.formModel.getData();
+            if (data !== null) {
+                promise = this.client.LoadLinkWithData(this.rel, data);
             }
             else {
-                promise = this.client.LoadLinkWithBody(this.rel, data);
+                promise = this.client.LoadLink(this.rel);
             }
-        }
-        else{
-            promise = this.client.LoadLink(this.rel);
-        }
 
-        try{
-            this.parentController.showResults(promise);
+            await this.parentController.showResults(promise);
             if (this.method === "GET") {
                 this.deepLinkManager.pushState(DeepLinkManagerName, null, { entry: this.client.GetLink(this.rel).href });
             }
@@ -127,7 +120,7 @@ class LinkController {
         catch(err){
             this.currentError = err;
             this.formModel.setError(err);
-            alert('Error completing request. Message: ' + err.message);
+            this.parentController.showMainToggle();
         }
     }
 
@@ -184,6 +177,8 @@ export abstract class HalcyonBrowserController {
     private getLinkVariant(item: HalLinkDisplay) {
         return "form";
     }
+
+    public abstract showMainToggle();
 }
 
 class HalcyonMainBrowserController extends HalcyonBrowserController implements deepLink.IDeepLinkHandler {
@@ -228,6 +223,10 @@ class HalcyonMainBrowserController extends HalcyonBrowserController implements d
         await super.showResults(clientPromise);
         this.toggleGroup.activate(this.mainToggle);
     }
+
+    public showMainToggle() {
+        this.toggleGroup.activate(this.mainToggle);
+    }
 }
 
 class HalcyonSubBrowserController extends HalcyonBrowserController {
@@ -255,6 +254,10 @@ class HalcyonSubBrowserController extends HalcyonBrowserController {
         evt.stopImmediatePropagation();
         this.hiddenAreaToggle.toggle();
         this.expandButtonToggle.mode = this.hiddenAreaToggle.mode;
+    }
+
+    public showMainToggle() {
+        
     }
 }
 
