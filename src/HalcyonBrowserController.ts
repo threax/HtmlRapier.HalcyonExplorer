@@ -11,9 +11,9 @@ import * as toggles from 'hr.toggles';
 const DeepLinkManagerName = "ApiBrowser";
 
 interface HalLinkDisplay {
-    href: string,
-    rel: string,
-    method: string,
+    href: string;
+    rel: string;
+    method: string;
     getClient(): HalClient.HalEndpointClient;
 }
 
@@ -26,9 +26,8 @@ interface HalRequestData {
 }
 
 interface HalEndpointDoc {
-    requestSchema: any,
-    responseSchema: any,
-    querySchema: any,
+    requestSchema: any;
+    responseSchema: any;
 }
 
 var defaultError = { path: null };
@@ -80,9 +79,6 @@ class LinkController {
                 if (doc.requestSchema) {
                     this.formModel.setSchema(doc.requestSchema);
                     this.formModel.setData(this.client.GetData());
-                }
-                else if (doc.querySchema) {
-                    this.formModel.setSchema(doc.querySchema);
                 }
             }
         }

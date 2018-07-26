@@ -1,12 +1,12 @@
 {
   "name": "htmlrapier.halcyon-explorer",
-  "version": "7.2.0",
+  "version": "8.0.0",
   "private": false,
   "devDependencies": {
     
   },
   "dependencies": {
     "htmlrapier": ">=14.0.0",
-    "htmlrapier.halcyon": ">=6.2.0"
+    "htmlrapier.halcyon": ">=7.0.0"
   }
 }
