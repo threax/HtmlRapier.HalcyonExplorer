@@ -210,7 +210,7 @@ class HalcyonMainBrowserController extends HalcyonBrowserController implements d
         }
     }
 
-    public onPopState(args: deepLink.DeepLinkArgs) {
+    public onPopState(args: deepLink.IDeepLinkArgs) {
         this.setup(false);
     }
 
