@@ -110,7 +110,7 @@ class LinkController {
 
             await this.parentController.showResults(promise);
             if (this.method === "GET") {
-                this.deepLinkManager.pushState(DeepLinkManagerName, null, { entry: this.client.GetLink(this.rel).href });
+                await this.deepLinkManager.pushStateAsync(DeepLinkManagerName, null, { entry: this.client.GetLink(this.rel).href });
             }
         }
         catch(err){
@@ -201,7 +201,7 @@ class HalcyonMainBrowserController extends HalcyonBrowserController implements d
         var query: Query = <Query>uri.getQueryObject();
         if (query.entry !== undefined) {
             if (replaceState) {
-                this.deepLinkManager.replaceState(DeepLinkManagerName, null, { entry: query.entry });
+                await this.deepLinkManager.replaceStateAsync(DeepLinkManagerName, null, { entry: query.entry });
             }
             this.showResults(HalClient.HalEndpointClient.Load({ href: query.entry, method: 'GET' }, this.fetcher));
         }
