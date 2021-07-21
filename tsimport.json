@@ -1,11 +1,4 @@
 {
-  "compilerOptions": {
-    "paths": {
-      "hr.halcyon-explorer.*": [
-        "src/*"
-      ]
-    }
-  },
   "include": [
     "src/**/*.ts"
   ]
