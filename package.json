@@ -1,12 +1,14 @@
 {
   "name": "htmlrapier.halcyon-explorer",
-  "version": "8.0.0",
+  "version": "9.0.0-pre.0",
   "private": false,
-  "devDependencies": {
-    
-  },
+  "devDependencies": {},
   "dependencies": {
-    "htmlrapier": ">=14.0.0",
-    "htmlrapier.halcyon": ">=7.0.0"
-  }
+    "htmlrapier": ">=25.0.0-pre.0",
+    "htmlrapier.halcyon": ">=10.0.0-pre.0"
+  },
+  "files": [
+    "src/**/*",
+    "tsimport.json"
+  ]
 }

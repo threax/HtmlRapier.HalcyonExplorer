@@ -1,12 +1,11 @@
-﻿import * as controller from 'hr.controller';
-import * as HalClient from 'hr.halcyon.EndpointClient';
-import * as iter from 'hr.iterable';
-import * as fetcher from 'hr.fetcher';
-import * as uri from 'hr.uri';
-import * as WindowFetch from 'hr.windowfetch';
-import * as form from 'hr.form';
-import * as deepLink from 'hr.deeplink';
-import * as toggles from 'hr.toggles';
+﻿import * as controller from 'htmlrapier/src/controller';
+import * as HalClient from 'htmlrapier.halcyon/src/EndpointClient';
+import * as iter from 'htmlrapier/src/iterable';
+import * as fetcher from 'htmlrapier/src/fetcher';
+import * as uri from 'htmlrapier/src/uri';
+import * as WindowFetch from 'htmlrapier/src/windowfetch';
+import * as deepLink from 'htmlrapier/src/deeplink';
+import * as toggles from 'htmlrapier/src/toggles';
 
 const DeepLinkManagerName = "ApiBrowser";
 
