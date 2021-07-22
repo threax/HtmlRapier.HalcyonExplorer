@@ -1,11 +1,11 @@
 {
   "name": "htmlrapier.halcyon-explorer",
-  "version": "9.0.0-pre.1",
+  "version": "9.0.0",
   "private": false,
   "devDependencies": {},
   "dependencies": {
-    "htmlrapier": ">=25.0.0-pre.0",
-    "htmlrapier.halcyon": ">=10.0.0-pre.0"
+    "htmlrapier": ">=25.0.0",
+    "htmlrapier.halcyon": ">=10.0.0"
   },
   "files": [
     "src/**/*",
