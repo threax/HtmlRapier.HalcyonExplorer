@@ -129,15 +129,15 @@ interface Query {
 }
 
 export abstract class HalcyonBrowserController {
-    private linkModel: controller.Model<HalLinkDisplay>;
-    private embedsModel: controller.Model<HalClient.Embed>;
-    private dataModel: controller.Model<any>;
+    private linkModel: controller.IView<HalLinkDisplay>;
+    private embedsModel: controller.IView<HalClient.Embed>;
+    private dataModel: controller.IView<any>;
     private client: HalClient.HalEndpointClient;
 
     constructor(bindings: controller.BindingCollection, private builder: controller.InjectedControllerBuilder) {
-        this.linkModel = bindings.getModel<HalLinkDisplay>("links");
-        this.embedsModel = bindings.getModel<HalClient.Embed>("embeds");
-        this.dataModel = bindings.getModel<any>("data");
+        this.linkModel = bindings.getView<HalLinkDisplay>("links");
+        this.embedsModel = bindings.getView<HalClient.Embed>("embeds");
+        this.dataModel = bindings.getView<any>("data");
     }
 
     async showResults(clientPromise: Promise<HalClient.HalEndpointClient>): Promise<void> {
@@ -262,7 +262,7 @@ class HalcyonEmbedsController {
     }
 
     constructor(bindings: controller.BindingCollection, data: HalClient.Embed, builder: controller.InjectedControllerBuilder) {
-        var itemModel = bindings.getModel<HalClient.HalEndpointClient>("items");
+        var itemModel = bindings.getView<HalClient.HalEndpointClient>("items");
         itemModel.setData(data.GetAllClients(), builder.createOnCallback(HalcyonSubBrowserController));
     }
 }
